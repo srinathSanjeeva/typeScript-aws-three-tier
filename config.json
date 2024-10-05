@@ -15,10 +15,15 @@
     }
   },
   "frontend": {
-    "instanceType": "t2.micro",
-    "desiredCapacity": 2,
-    "minCapacity": 1,
-    "maxCapacity": 3
+    "dockerImage": "sanjeevas/nextjs-frontend:v2",
+    "memoryLimitMiB": 512,
+    "cpu": 256,
+    "environment": {
+      "NEXT_PUBLIC_API_URL": "https://your-api-url.com"
+    },
+    "dockerPort": "3000",
+    "containerPort": 3000,
+    "listenerPort": 80
   },
   "backend": {
     "instanceType": "t2.micro",
