@@ -1,0 +1,78 @@
+ {
+    "dev": {
+      "environment": "dev",
+      "vpc": {
+        "maxAzs": 2
+      },
+      "rds": {
+        "instanceType": "db.t2.micro",
+        "allocatedStorage": 20,
+        "storageType": "gp2",
+        "userName": "awsadmin_999",
+        "password": "admin1234",
+        "db_database": "primer"
+      },
+      "backendInstance": {
+        "instanceType": "t2.micro",
+        "minCapacity": 1,
+        "maxCapacity": 1,
+        "desiredCapacity": 1,
+        "app_port": "3000",
+        "keyName": "ec2-pair"
+      },
+      "frontendInstance": {
+        "instanceType": "t2.micro",
+        "minCapacity": 1,
+        "maxCapacity": 1,
+        "desiredCapacity": 1,
+        "keyName": "ec2-pair"
+      },
+      "alb": {
+        "internetFacing": true,
+        "listenerPort": 80,
+        "backendListenerPort": 3000
+      },
+      "tags": {
+        "Environment": "dev",
+        "Owner": "E-Commerce",
+        "CostCenter": "12345"
+      }
+    },
+    "prod": {
+      "environment": "prod",
+      "vpc": {
+        "maxAzs": 2
+      },
+      "rds": {
+        "instanceType": "db.t2.micro",
+        "allocatedStorage": 20,
+        "storageType": "gp2",
+        "userName": "awsadmin_999",
+        "password": "admin1234",
+        "db_database": "primer"
+      },
+      "backendInstance": {
+        "instanceType": "t2.micro",
+        "minCapacity": 1,
+        "maxCapacity": 1,
+        "desiredCapacity": 1
+      },
+      "frontendInstance": {
+        "instanceType": "t2.micro",
+        "minCapacity": 1,
+        "maxCapacity": 1,
+        "desiredCapacity": 1,
+        "keyName": "ec2-pair"
+      },
+      "alb": {
+        "internetFacing": true,
+        "listenerPort": 80,
+        "backendListenerPort": 3000
+      },
+      "tags": {
+        "Environment": "prod",
+        "Owner": "E-Commerce",
+        "CostCenter": "123456"
+      }
+    }
+  }

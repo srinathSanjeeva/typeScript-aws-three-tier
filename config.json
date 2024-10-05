@@ -1,0 +1,34 @@
+{
+  "vpc": {
+    "cidr": "10.0.0.0/16",
+    "maxAzs": 2,
+    "subnets": {
+      "public": {
+        "cidrMask": 24
+      },
+      "backend": {
+        "cidrMask": 24
+      },
+      "database": {
+        "cidrMask": 24
+      }
+    }
+  },
+  "frontend": {
+    "instanceType": "t2.micro",
+    "desiredCapacity": 2,
+    "minCapacity": 1,
+    "maxCapacity": 3
+  },
+  "backend": {
+    "instanceType": "t2.micro",
+    "desiredCapacity": 2,
+    "minCapacity": 1,
+    "maxCapacity": 3
+  },
+  "database": {
+    "instanceClass": "T3",
+    "instanceSize": "MICRO",
+    "allocatedStorage": 20
+  }
+}

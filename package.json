@@ -1,0 +1,38 @@
+{
+  "name": "ts-aws-cdk-multitier-app",
+  "version": "1.0.0",
+  "description": "AWS CDK multitier app using TypeScript",
+  "main": "bin/app.ts",
+  "scripts": {
+    "build": "tsc && npm run copy-parameters",
+    "copy-parameters": "cp config.json dist/",
+    "watch": "tsc -w",
+    "cdk": "cdk",
+    "synth": "cdk synth -all",
+    "deploy": "cdk deploy --all --require-approval never",
+    "destroy": "cdk destroy --all --context env=dev --require-approval never",
+    "test": "jest",
+    "lint": "tslint --project tsconfig.json"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.60.0",
+    "constructs": "^10.1.142",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "typescript": "^4.7.0",
+    "ts-node": "^10.8.0"
+  },
+  "cdkDependencies": [
+    "@aws-cdk/aws-ec2",
+    "@aws-cdk/aws-autoscaling",
+    "@aws-cdk/aws-rds"
+  ],
+  "comments": {
+    "note": "Excluded dependencies for deprecated @aws-cdk/assertions package",
+    "@aws-cdk/assertions": "latest",
+    "@aws-cdk/assertions/jest": "latest"
+  }
+}

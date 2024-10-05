@@ -1,0 +1,22 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# TypeScript
+*.js
+*.js.map
+*.d.ts
+*.tsbuildinfo
+
+# CDK
+cdk.context.json
+cdk.out/
+.cdk.staging/
+
+# IDE
+.vscode/
+.idea/
+
+# Output
+dist/
