@@ -9,12 +9,14 @@ import {
   LogDriver,
 } from "aws-cdk-lib/aws-ecs";
 import { ApplicationLoadBalancedFargateService } from "aws-cdk-lib/aws-ecs-patterns";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as fs from "fs";
 import * as path from "path";
 
 interface FrontendStackProps extends StackProps {
   vpc: Vpc;
   config: any;
+  frontendSecurityGroup: SecurityGroup;
 }
 
 export class FrontendStack extends Stack {
@@ -53,6 +55,11 @@ export class FrontendStack extends Stack {
       "FrontendTaskDefinition",
     );
 
+    // Create CloudWatch Log Group for the backend
+    const logGroup = new logs.LogGroup(this, "FrontendLogGroup", {
+      retention: logs.RetentionDays.ONE_WEEK,
+    });
+
     // Add the container definition using your Docker image (from config.json)
     const container = taskDefinition.addContainer("FrontendContainer", {
       image: ContainerImage.fromRegistry(props.config.frontend.dockerImage), // Use parameterized Docker image
@@ -63,7 +70,8 @@ export class FrontendStack extends Stack {
         PORT: props.config.frontend.dockerPort, // Set the PORT environment variable
       },
       logging: LogDriver.awsLogs({
-        streamPrefix: "FrontendApp", // The log stream prefix for CloudWatch
+        logGroup, // Send logs to the log group created above
+        streamPrefix: "frontend", // The log stream prefix for CloudWatch
       }),
     });
 

@@ -21,6 +21,7 @@ import * as path from "path";
 interface BackendStackProps extends StackProps {
   vpc: Vpc;
   frontendSecurityGroup: SecurityGroup;
+  securityGroup: SecurityGroup;
   dbSecret: Secret;
   dbHost: string;
   config: any;
@@ -116,7 +117,7 @@ export class BackendStack extends Stack {
     // Allow inbound traffic only from the frontend security group (on port 8080)
     fargateService.service.connections.allowFrom(
       props.frontendSecurityGroup,
-      ec2.Port.tcp(props.config.backend.containerPort),
+      ec2.Port.tcp(props.config.frontend.containerPort),
       "Allow traffic from frontend",
     );
   }

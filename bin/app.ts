@@ -32,23 +32,25 @@ const networkStack = new NetworkStack(app, "NetworkStack", {
 // Frontend Stack with Auto Scaling Group and Security Group
 const frontendStack = new FrontendStack(app, "FrontendStack", {
   vpc: networkStack.vpc,
-  config,
+  frontendSecurityGroup: networkStack.frontendSecurityGroup,
+  config: config,
 });
-
 // Create the Database stack
 const databaseStack = new DatabaseStack(app, "DatabaseStack", {
   vpc: networkStack.vpc,
-  securityGroup: networkStack.securityGroup, // Use appropriate security group from network stack
+  databaseSecurityGroup: networkStack.databaseSecurityGroup, // Use appropriate security group from network stack
   config,
 });
 
-// Backend Stack with Auto Scaling Group and Security Group
+// Create the Backend Stack
 const backendStack = new BackendStack(app, "BackendStack", {
   vpc: networkStack.vpc,
-  dbSecret: databaseStack.dbSecret, // Pass the database secret from the DatabaseStack
+  frontendSecurityGroup: networkStack.frontendSecurityGroup,
+  backendSecurityGroup: networkStack.backendSecurityGroup, // Use the backend security group from NetworkStack
+  databaseSecurityGroup: networkStack.databaseSecurityGroup, // Pass the database security group from NetworkStack
+  dbSecret: databaseStack.dbSecret, // Pass the database secret from DatabaseStack
   dbHost: databaseStack.dbHost, // Pass the database hostname
-  frontendSecurityGroup: frontendStack.frontendSecurityGroup, // Pass the frontend security group
-  config,
+  config: config,
 });
 
 // Synthesize the CloudFormation template

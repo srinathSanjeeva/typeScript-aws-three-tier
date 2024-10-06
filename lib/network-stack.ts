@@ -8,8 +8,6 @@ import {
   SubnetType,
 } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
-import * as fs from "fs";
-import * as path from "path";
 
 interface NetworkStackProps extends StackProps {
   config: any; // Configuration object
@@ -17,7 +15,9 @@ interface NetworkStackProps extends StackProps {
 
 export class NetworkStack extends Stack {
   public readonly vpc: Vpc;
-  public readonly securityGroup: SecurityGroup; // Main security group for general access
+  public readonly frontendSecurityGroup: SecurityGroup;
+  public readonly backendSecurityGroup: SecurityGroup;
+  public readonly databaseSecurityGroup: SecurityGroup;
 
   constructor(scope: Construct, id: string, props?: NetworkStackProps) {
     super(scope, id, props);
@@ -49,25 +49,70 @@ export class NetworkStack extends Stack {
       ],
     });
 
-    // Create a security group for general access
-    this.securityGroup = new SecurityGroup(this, "AppSecurityGroup", {
-      vpc: this.vpc,
-      description: "Allow all outbound traffic",
-      allowAllOutbound: true,
-    });
+    // Create a security group for frontend
+    this.frontendSecurityGroup = new SecurityGroup(
+      this,
+      "FrontendSecurityGroup",
+      {
+        vpc: this.vpc,
+        description: "Allow traffic to frontend",
+        allowAllOutbound: true,
+      },
+    );
 
-    // Add an inbound rule to allow SSH (port 22) from a specific IP or range
-    this.securityGroup.addIngressRule(
+    // Create a security group for backend
+    this.backendSecurityGroup = new SecurityGroup(
+      this,
+      "BackendSecurityGroup",
+      {
+        vpc: this.vpc,
+        description: "Allow traffic to backend",
+        allowAllOutbound: true,
+      },
+    );
+
+    // Create a security group for the database
+    this.databaseSecurityGroup = new SecurityGroup(
+      this,
+      "DatabaseSecurityGroup",
+      {
+        vpc: this.vpc,
+        description: "Allow traffic to the database",
+        allowAllOutbound: true,
+      },
+    );
+
+    // Frontend security group: Allow inbound HTTP/HTTPS traffic from the internet
+    this.frontendSecurityGroup.addIngressRule(
+      Peer.anyIpv4(),
+      Port.tcp(props.config.frontend.containerPort),
+      "Allow HTTP traffic from anywhere",
+    );
+    this.frontendSecurityGroup.addIngressRule(
+      Peer.anyIpv4(),
+      Port.tcp(443),
+      "Allow HTTPS traffic from anywhere",
+    );
+
+    // Backend security group: Allow traffic only from the frontend security group
+    this.backendSecurityGroup.addIngressRule(
+      this.frontendSecurityGroup,
+      Port.tcp(props.config.backend.containerPort),
+      "Allow traffic from frontend to backend",
+    );
+
+    // Database security group: Allow MySQL traffic only from the backend security group
+    this.databaseSecurityGroup.addIngressRule(
+      this.backendSecurityGroup,
+      Port.tcp(3306),
+      "Allow traffic from backend to database",
+    );
+
+    // SSH access to backend (optional, depends on your requirements)
+    this.backendSecurityGroup.addIngressRule(
       Peer.anyIpv4(),
       Port.tcp(22),
       "Allow SSH access from anywhere",
-    );
-
-    // Add rules to allow communication within the VPC (backend <-> frontend, etc.)
-    this.securityGroup.addIngressRule(
-      Peer.ipv4(this.vpc.vpcCidrBlock),
-      Port.allTraffic(),
-      "Allow all internal VPC traffic",
     );
   }
 }
