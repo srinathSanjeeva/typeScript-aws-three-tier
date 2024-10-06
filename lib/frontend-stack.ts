@@ -14,6 +14,7 @@ import * as path from "path";
 
 interface FrontendStackProps extends StackProps {
   vpc: Vpc;
+  config: any;
 }
 
 export class FrontendStack extends Stack {
@@ -22,11 +23,6 @@ export class FrontendStack extends Stack {
 
   constructor(scope: Construct, id: string, props: FrontendStackProps) {
     super(scope, id, props);
-
-    // Load configuration
-    const config = JSON.parse(
-      fs.readFileSync(path.resolve(__dirname, "../config.json"), "utf8"),
-    ).frontend;
 
     // Create an ECS Cluster within the provided VPC
     const cluster = new Cluster(this, "FrontendCluster", {
@@ -59,12 +55,12 @@ export class FrontendStack extends Stack {
 
     // Add the container definition using your Docker image (from config.json)
     const container = taskDefinition.addContainer("FrontendContainer", {
-      image: ContainerImage.fromRegistry(config.dockerImage), // Use parameterized Docker image
-      memoryLimitMiB: config.memoryLimitMiB, // Parameterized memory limit
-      cpu: config.cpu, // Parameterized CPU units
+      image: ContainerImage.fromRegistry(props.config.frontend.dockerImage), // Use parameterized Docker image
+      memoryLimitMiB: props.config.frontend.memoryLimitMiB, // Parameterized memory limit
+      cpu: props.config.frontend.cpu, // Parameterized CPU units
       environment: {
-        ...config.environment, // Existing environment variables from config
-        PORT: config.dockerPort, // Set the PORT environment variable
+        ...props.config.frontend.environment, // Existing environment variables from config
+        PORT: props.config.frontend.dockerPort, // Set the PORT environment variable
       },
       logging: LogDriver.awsLogs({
         streamPrefix: "FrontendApp", // The log stream prefix for CloudWatch
@@ -73,7 +69,7 @@ export class FrontendStack extends Stack {
 
     // Map container port 80 to host port 80
     container.addPortMappings({
-      containerPort: config.containerPort,
+      containerPort: props.config.frontend.containerPort,
       protocol: cdk.aws_ecs.Protocol.TCP,
     });
 
@@ -82,7 +78,7 @@ export class FrontendStack extends Stack {
       cluster: cluster, // Link to the ECS cluster
       taskDefinition: taskDefinition, // Use the task definition created above
       publicLoadBalancer: true, // Expose to the internet
-      listenerPort: config.listenerPort, // Parameterized listener port (80)
+      listenerPort: props.config.frontend.listenerPort, // Parameterized listener port (80)
       // targetGroupProps: {
       //   port: config.containerPort, // Forward traffic to port 4000 in the container
       // },

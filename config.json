@@ -1,39 +1,106 @@
 {
-  "vpc": {
-    "cidr": "10.0.0.0/16",
-    "maxAzs": 2,
-    "subnets": {
-      "public": {
-        "cidrMask": 24
-      },
-      "backend": {
-        "cidrMask": 24
-      },
-      "database": {
-        "cidrMask": 24
+  "dev": {
+    "environment": "dev",
+    "vpc": {
+      "cidr": "10.0.0.0/16",
+      "maxAzs": 2,
+      "subnets": {
+        "public": {
+          "cidrMask": 24
+        },
+        "backend": {
+          "cidrMask": 24
+        },
+        "database": {
+          "cidrMask": 24
+        }
       }
+    },
+    "frontend": {
+      "dockerImage": "sanjeevas/nextjs-frontend:v2",
+      "memoryLimitMiB": 512,
+      "cpu": 256,
+      "environment": {
+        "NEXT_PUBLIC_API_URL": "https://your-api-url.com"
+      },
+      "dockerPort": "3000",
+      "containerPort": 3000,
+      "listenerPort": 80
+    },
+    "backend": {
+      "dockerImage": "sanjeevas/spring-rest-app",
+      "memoryLimitMiB": 512,
+      "cpu": 256,
+      "instanceType": "t2.micro",
+      "desiredCapacity": 2,
+      "minCapacity": 1,
+      "maxCapacity": 3,
+      "dbName": "organization",
+      "containerPort": 8080,
+      "profilesActive": "mysql"
+    },
+    "database": {
+      "instanceClass": "T3",
+      "instanceSize": "MICRO",
+      "allocatedStorage": 20
+    },
+    "tags": {
+      "Environment": "dev",
+      "Owner": "BlackOps",
+      "Project": "Organization",
+      "CostCenter": "CC1234"
     }
   },
-  "frontend": {
-    "dockerImage": "sanjeevas/nextjs-frontend:v2",
-    "memoryLimitMiB": 512,
-    "cpu": 256,
-    "environment": {
-      "NEXT_PUBLIC_API_URL": "https://your-api-url.com"
+  "prod": {
+    "environment": "rod",
+    "vpc": {
+      "cidr": "10.0.0.0/16",
+      "maxAzs": 2,
+      "subnets": {
+        "public": {
+          "cidrMask": 24
+        },
+        "backend": {
+          "cidrMask": 24
+        },
+        "database": {
+          "cidrMask": 24
+        }
+      }
     },
-    "dockerPort": "3000",
-    "containerPort": 3000,
-    "listenerPort": 80
-  },
-  "backend": {
-    "instanceType": "t2.micro",
-    "desiredCapacity": 2,
-    "minCapacity": 1,
-    "maxCapacity": 3
-  },
-  "database": {
-    "instanceClass": "T3",
-    "instanceSize": "MICRO",
-    "allocatedStorage": 20
+    "frontend": {
+      "dockerImage": "sanjeevas/nextjs-frontend:v2",
+      "memoryLimitMiB": 512,
+      "cpu": 256,
+      "environment": {
+        "NEXT_PUBLIC_API_URL": "https://your-api-url.com"
+      },
+      "dockerPort": "3000",
+      "containerPort": 3000,
+      "listenerPort": 80
+    },
+    "backend": {
+      "dockerImage": "sanjeevas/spring-rest-app",
+      "memoryLimitMiB": 512,
+      "cpu": 256,
+      "instanceType": "t2.micro",
+      "desiredCapacity": 3,
+      "minCapacity": 1,
+      "maxCapacity": 3,
+      "dbName": "organization",
+      "containerPort": 8080,
+      "profilesActive": "mysql"
+    },
+    "database": {
+      "instanceClass": "T3",
+      "instanceSize": "MICRO",
+      "allocatedStorage": 20
+    },
+    "tags": {
+      "Environment": "prod",
+      "Owner": "BlackOps",
+      "Project": "Organization",
+      "CostCenter": "CC1234"
+    }
   }
 }

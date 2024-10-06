@@ -14,12 +14,15 @@ import {
   MysqlEngineVersion,
   StorageType,
 } from "aws-cdk-lib/aws-rds";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as fs from "fs";
 import * as path from "path";
 
 interface DatabaseStackProps extends StackProps {
   vpc: Vpc;
-  backendSecurityGroup: SecurityGroup;
+  securityGroup: SecurityGroup;
+  config: any;
 }
 
 // Define a type for the configuration file
@@ -32,13 +35,22 @@ interface ConfigType {
 }
 
 export class DatabaseStack extends Stack {
+  public readonly dbSecret: Secret;
+  public readonly dbHost: string; // Export the database host
+
   constructor(scope: Construct, id: string, props: DatabaseStackProps) {
     super(scope, id, props);
 
-    // Load and parse configuration
-    const config: ConfigType = JSON.parse(
-      fs.readFileSync(path.resolve(__dirname, "../config.json"), "utf8"),
-    );
+    // Create a new secret in AWS Secrets Manager
+    this.dbSecret = new Secret(this, "DBPasswordSecret", {
+      secretName: "db-password",
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({ username: "admin" }),
+        generateStringKey: "password",
+        excludePunctuation: true, // Optional: Customize password rules
+        passwordLength: 16,
+      },
+    });
 
     // Create a security group for the database
     const databaseSecurityGroup = new SecurityGroup(
@@ -52,10 +64,15 @@ export class DatabaseStack extends Stack {
 
     // Allow inbound traffic only from the backend security group on port 3306
     databaseSecurityGroup.addIngressRule(
-      props.backendSecurityGroup,
+      props.securityGroup,
       Port.tcp(3306),
       "Allow traffic from backend",
     );
+
+    const instanceClass = props.config.database
+      .instanceClass as keyof typeof cdk.aws_ec2.InstanceClass;
+    const instanceSize = props.config.database
+      .instanceSize as keyof typeof cdk.aws_ec2.InstanceSize;
 
     // Create the MySQL RDS instance
     const rdsInstance = new DatabaseInstance(this, "MySQLInstance", {
@@ -63,16 +80,26 @@ export class DatabaseStack extends Stack {
         version: MysqlEngineVersion.VER_8_0,
       }),
       instanceType: cdk.aws_ec2.InstanceType.of(
-        cdk.aws_ec2.InstanceClass[config.database.instanceClass], // Map to InstanceClass enum
-        cdk.aws_ec2.InstanceSize[config.database.instanceSize], // Map to InstanceSize enum
+        cdk.aws_ec2.InstanceClass[instanceClass], // Map to InstanceClass enum
+        cdk.aws_ec2.InstanceSize[instanceSize], // Map to InstanceSize enum
       ),
       vpc: props.vpc,
       vpcSubnets: { subnetType: cdk.aws_ec2.SubnetType.PRIVATE_ISOLATED },
       securityGroups: [databaseSecurityGroup],
+      credentials: {
+        username: this.dbSecret.secretValueFromJson("username").toString(),
+        password: this.dbSecret.secretValueFromJson("password"),
+      },
       storageType: StorageType.GP2,
-      allocatedStorage: config.database.allocatedStorage,
+      allocatedStorage: props.config.database.allocatedStorage,
       backupRetention: cdk.Duration.days(7),
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+
+      // Enable CloudWatch Logs for MySQL
+      cloudwatchLogsExports: ["error", "general", "slowquery"], // Log types to export
+      cloudwatchLogsRetention: logs.RetentionDays.ONE_WEEK, // Retain logs for 7 days
     });
+
+    this.dbHost = rdsInstance.dbInstanceEndpointAddress;
   }
 }
