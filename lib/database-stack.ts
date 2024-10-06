@@ -21,7 +21,7 @@ import * as path from "path";
 
 interface DatabaseStackProps extends StackProps {
   vpc: Vpc;
-  securityGroup: SecurityGroup;
+  databaseSecurityGroup: SecurityGroup;
   config: any;
 }
 
@@ -52,22 +52,6 @@ export class DatabaseStack extends Stack {
       },
     });
 
-    // Create a security group for the database
-    const databaseSecurityGroup = new SecurityGroup(
-      this,
-      "DatabaseSecurityGroup",
-      {
-        vpc: props.vpc,
-        allowAllOutbound: true,
-      },
-    );
-
-    // Allow inbound traffic only from the backend security group on port 3306
-    databaseSecurityGroup.addIngressRule(
-      props.securityGroup,
-      Port.tcp(3306),
-      "Allow traffic from backend",
-    );
 
     const instanceClass = props.config.database
       .instanceClass as keyof typeof cdk.aws_ec2.InstanceClass;
@@ -85,7 +69,7 @@ export class DatabaseStack extends Stack {
       ),
       vpc: props.vpc,
       vpcSubnets: { subnetType: cdk.aws_ec2.SubnetType.PRIVATE_ISOLATED },
-      securityGroups: [databaseSecurityGroup],
+      securityGroups: [props.databaseSecurityGroup],
       credentials: {
         username: this.dbSecret.secretValueFromJson("username").toString(),
         password: this.dbSecret.secretValueFromJson("password"),
