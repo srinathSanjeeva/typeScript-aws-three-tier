@@ -52,7 +52,6 @@ export class DatabaseStack extends Stack {
       },
     });
 
-
     const instanceClass = props.config.database
       .instanceClass as keyof typeof cdk.aws_ec2.InstanceClass;
     const instanceSize = props.config.database
@@ -77,6 +76,7 @@ export class DatabaseStack extends Stack {
       storageType: StorageType.GP2,
       allocatedStorage: props.config.database.allocatedStorage,
       backupRetention: cdk.Duration.days(7),
+      databaseName: props.config.database.dbName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
 
       // Enable CloudWatch Logs for MySQL

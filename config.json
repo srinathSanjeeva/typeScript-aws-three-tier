@@ -35,14 +35,14 @@
       "desiredCapacity": 2,
       "minCapacity": 1,
       "maxCapacity": 3,
-      "dbName": "organization",
       "containerPort": 8080,
       "profilesActive": "mysql"
     },
     "database": {
       "instanceClass": "T3",
       "instanceSize": "MICRO",
-      "allocatedStorage": 20
+      "allocatedStorage": 20,
+      "dbName": "organization"
     },
     "tags": {
       "Environment": "dev",
@@ -80,7 +80,7 @@
       "listenerPort": 80
     },
     "backend": {
-      "dockerImage": "sanjeevas/spring-rest-app",
+      "dockerImage": "sanjeevas/spring-rest-app:v3",
       "memoryLimitMiB": 512,
       "cpu": 256,
       "instanceType": "t2.micro",

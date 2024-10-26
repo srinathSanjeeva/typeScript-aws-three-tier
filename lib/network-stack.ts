@@ -101,6 +101,13 @@ export class NetworkStack extends Stack {
       "Allow traffic from frontend to backend",
     );
 
+    // Backend security group: Allow traffic only from the frontend security group
+    this.backendSecurityGroup.addIngressRule(
+      this.databaseSecurityGroup,
+      Port.tcp(3306),
+      "Allow traffic from backend to database",
+    );
+
     // Database security group: Allow MySQL traffic only from the backend security group
     this.databaseSecurityGroup.addIngressRule(
       this.backendSecurityGroup,

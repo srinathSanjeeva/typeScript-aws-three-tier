@@ -42,7 +42,7 @@ export class BackendStack extends Stack {
       .secretValueFromJson("password")
       .toString();
     const dbHost = props.dbHost; // Use the passed dbHost
-    const dbName = props.config.backend.dbName; // Example database name (can also be parameterized)
+    const dbName = props.config.database.dbName;
 
     // Create a security group for the backend layer
     this.backendSecurityGroup = new SecurityGroup(
@@ -112,21 +112,31 @@ export class BackendStack extends Stack {
           cpu: props.config.backend.cpu,
           desiredCount: 2,
           publicLoadBalancer: false, // Not accessible to the public
+          healthCheckGracePeriod: cdk.Duration.seconds(60), // Optional grace period for health check initialization
         },
       );
+
+    // Add a health check for the backend service
+    fargateService.targetGroup.configureHealthCheck({
+      path: "/actuator/health", // Path to your health check endpoint
+      interval: cdk.Duration.seconds(30), // Interval between checks
+      healthyThresholdCount: 2, // Minimum number of healthy checks
+      unhealthyThresholdCount: 5, // Minimum number of failed checks before considering unhealthy
+      timeout: cdk.Duration.seconds(5), // Timeout for health check response
+    });
 
     // Allow inbound traffic from the frontend security group to the backend Fargate service
     fargateService.service.connections.allowFrom(
       props.frontendSecurityGroup,
       ec2.Port.tcp(props.config.frontend.containerPort),
-      "Allow traffic from frontend"
+      "Allow traffic from frontend",
     );
 
     // Allow backend to connect to the database on port 3306
     fargateService.service.connections.allowTo(
       props.databaseSecurityGroup,
       ec2.Port.tcp(3306),
-      "Allow traffic to the database on port 3306"
+      "Allow traffic to the database on port 3306",
     );
   }
 }
